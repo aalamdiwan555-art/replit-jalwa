@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ATPILOT Device Admin"
+description = "A secure browser-based control center for approved administrators to monitor enrolled ATPILOT Android devices, review health, and send authorized testing commands to individual devices or groups."
+version = "1.0.0"
+id = "artifacts/device-admin"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18494
+
+[services.development]
+run = "pnpm --filter @workspace/device-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/device-admin", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/device-admin/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18494"
+BASE_PATH = "/"
