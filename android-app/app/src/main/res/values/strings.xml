@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ATPILOT</string>
+    <string name="accessibility_service_description">Runs the single, user-configured test action only while ATPILOT is actively running. No screen data is uploaded.</string>
+</resources>

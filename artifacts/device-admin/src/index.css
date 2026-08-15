@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -78,90 +79,63 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: red; /*replace with H S L */
+  --background: 220 24% 95%;
+  --foreground: 224 35% 14%;
+  --border: 218 20% 86%;
+  --card: 220 28% 98%;
+  --card-foreground: 224 35% 14%;
+  --card-border: 218 20% 86%;
+  --sidebar: 225 37% 13%;
+  --sidebar-foreground: 217 25% 82%;
+  --sidebar-border: 224 27% 23%;
+  --sidebar-primary: 174 67% 47%;
+  --sidebar-primary-foreground: 225 37% 13%;
+  --sidebar-accent: 224 29% 19%;
+  --sidebar-accent-foreground: 220 30% 94%;
+  --sidebar-ring: 174 67% 47%;
+  --popover: 220 28% 98%;
+  --popover-foreground: 224 35% 14%;
+  --popover-border: 218 20% 86%;
+  --primary: 174 67% 34%;
+  --primary-foreground: 220 28% 98%;
+  --secondary: 213 32% 91%;
+  --secondary-foreground: 224 35% 18%;
+  --muted: 217 22% 91%;
+  --muted-foreground: 218 13% 46%;
+  --accent: 32 91% 57%;
+  --accent-foreground: 224 35% 14%;
+  --destructive: 0 67% 49%;
+  --destructive-foreground: 220 28% 98%;
+  --input: 218 20% 82%;
+  --ring: 174 67% 34%;
+  --chart-1: 174 67% 34%;
+  --chart-2: 32 91% 57%;
+  --chart-3: 207 72% 51%;
+  --chart-4: 0 67% 49%;
+  --chart-5: 225 37% 13%;
 
-  --foreground: red; /*replace with H S L */
-
-  --border: red; /*replace with H S L */
-
-  --card: red; /*replace with H S L */
-
-  --card-foreground: red; /*replace with H S L */
-
-  --card-border: red; /*replace with H S L */
-
-  --sidebar: red; /*replace with H S L */
-
-  --sidebar-foreground: red; /*replace with H S L */
-
-  --sidebar-border: red; /*replace with H S L */
-
-  --sidebar-primary: red; /*replace with H S L */
-
-  --sidebar-primary-foreground: red; /*replace with H S L */
-
-  --sidebar-accent: red; /*replace with H S L */
-
-  --sidebar-accent-foreground: red; /*replace with H S L */
-
-  --sidebar-ring: red; /*replace with H S L */
-
-  --popover: red; /*replace with H S L */
-
-  --popover-foreground: red; /*replace with H S L */
-
-  --popover-border: red; /*replace with H S L */
-
-  --primary: red; /*replace with H S L */
-
-  --primary-foreground: red; /*replace with H S L */
-
-  --secondary: red; /*replace with H S L */
-
-  --secondary-foreground: red; /*replace with H S L */
-
-  --muted: red; /*replace with H S L */
-
-  --muted-foreground: red; /*replace with H S L */
-
-  --accent: red; /*replace with H S L */
-
-  --accent-foreground: red; /*replace with H S L */
-
-  --destructive: red; /*replace with H S L */
-
-  --destructive-foreground: red; /*replace with H S L */
-
-  --input: red; /*replace with H S L */
-  --ring: red; /*replace with H S L */
-  --chart-1: red; /*replace with H S L */
-  --chart-2: red; /*replace with H S L */
-  --chart-3: red; /*replace with H S L */
-  --chart-4: red; /*replace with H S L */
-  --chart-5: red; /*replace with H S L */
-
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: 'Manrope', sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  --radius: 0.5rem; /* 8px */
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
+  --app-font-mono: 'DM Mono', monospace;
+  --radius: 0.65rem;
+  --shadow-2xs: 0 1px 2px 0 hsl(225 37% 13% / 0.04);
+  --shadow-xs: 0 2px 4px 0 hsl(225 37% 13% / 0.04);
   --shadow-sm:
     0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+    0px 1px 2px -1px hsl(225 37% 13% / 0.08);
   --shadow:
     0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+    0px 1px 2px -1px hsl(225 37% 13% / 0.08);
   --shadow-md:
     0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+    0px 2px 4px -1px hsl(225 37% 13% / 0.1);
   --shadow-lg:
     0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+    0px 4px 6px -1px hsl(225 37% 13% / 0.1);
   --shadow-xl:
     0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-2xl: 0 16px 28px -14px hsl(225 37% 13% / 0.28);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -227,68 +201,40 @@
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
 
-  --background: red; /*replace with H S L */
-
-  --foreground: red; /*replace with H S L */
-
-  --border: red; /*replace with H S L */
-
-  --card: red; /*replace with H S L */
-
-  --card-foreground: red; /*replace with H S L */
-
-  --card-border: red; /*replace with H S L */
-
-  --sidebar: red; /*replace with H S L */
-
-  --sidebar-foreground: red; /*replace with H S L */
-
-  --sidebar-border: red; /*replace with H S L */
-
-  --sidebar-primary: red; /*replace with H S L */
-
-  --sidebar-primary-foreground: red; /*replace with H S L */
-
-  --sidebar-accent: red; /*replace with H S L */
-
-  --sidebar-accent-foreground: red; /*replace with H S L */
-
-  --sidebar-ring: red; /*replace with H S L */
-
-  --popover: red; /*replace with H S L */
-
-  --popover-foreground: red; /*replace with H S L */
-
-  --popover-border: red; /*replace with H S L */
-
-  --primary: red; /*replace with H S L */
-
-  --primary-foreground: red; /*replace with H S L */
-
-  --secondary: red; /*replace with H S L */
-
-  --secondary-foreground: red; /*replace with H S L */
-
-  --muted: red; /*replace with H S L */
-
-  --muted-foreground: red; /*replace with H S L */
-
-  --accent: red; /*replace with H S L */
-
-  --accent-foreground: red; /*replace with H S L */
-
-  --destructive: red; /*replace with H S L */
-
-  --destructive-foreground: red; /*replace with H S L */
-
-  /* Used as the border around inputs. Dark mode: Should be a border that is light enough to have high contrast when rendered on a --card background. More contrast than standard --border */
-  --input: red; /*replace with H S L */
-  --ring: red; /*replace with H S L */
-  --chart-1: red; /*replace with H S L */
-  --chart-2: red; /*replace with H S L */
-  --chart-3: red; /*replace with H S L */
-  --chart-4: red; /*replace with H S L */
-  --chart-5: red; /*replace with H S L */
+  --background: 225 37% 10%;
+  --foreground: 220 30% 94%;
+  --border: 224 27% 23%;
+  --card: 225 32% 14%;
+  --card-foreground: 220 30% 94%;
+  --card-border: 224 27% 23%;
+  --sidebar: 225 43% 8%;
+  --sidebar-foreground: 217 25% 82%;
+  --sidebar-border: 224 27% 18%;
+  --sidebar-primary: 174 67% 47%;
+  --sidebar-primary-foreground: 225 43% 8%;
+  --sidebar-accent: 224 29% 15%;
+  --sidebar-accent-foreground: 220 30% 94%;
+  --sidebar-ring: 174 67% 47%;
+  --popover: 225 32% 14%;
+  --popover-foreground: 220 30% 94%;
+  --popover-border: 224 27% 23%;
+  --primary: 174 67% 47%;
+  --primary-foreground: 225 43% 8%;
+  --secondary: 224 27% 21%;
+  --secondary-foreground: 220 30% 94%;
+  --muted: 224 27% 19%;
+  --muted-foreground: 217 18% 65%;
+  --accent: 32 91% 57%;
+  --accent-foreground: 225 43% 8%;
+  --destructive: 0 67% 58%;
+  --destructive-foreground: 225 43% 8%;
+  --input: 224 27% 28%;
+  --ring: 174 67% 47%;
+  --chart-1: 174 67% 47%;
+  --chart-2: 32 91% 57%;
+  --chart-3: 207 72% 61%;
+  --chart-4: 0 67% 58%;
+  --chart-5: 220 30% 94%;
 
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
@@ -318,6 +264,27 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+}
+
+body {
+  background-image: radial-gradient(circle at 85% -20%, hsl(174 67% 34% / 0.08), transparent 34rem);
+}
+
+button, a, input, select {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.app-grid {
+  background-image: linear-gradient(hsl(218 20% 86% / 0.34) 1px, transparent 1px), linear-gradient(90deg, hsl(218 20% 86% / 0.24) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.dark .app-grid {
+  background-image: linear-gradient(hsl(224 27% 23% / 0.4) 1px, transparent 1px), linear-gradient(90deg, hsl(224 27% 23% / 0.25) 1px, transparent 1px);
 }
 
 /**

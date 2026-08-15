@@ -1,6 +1,6 @@
-# [Project name]
+# ATPILOT Fleet Control
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+ATPILOT is an Android testing utility with a browser admin console for reviewing approved devices and sending safe, user-authorized test commands.
 
 ## Run & Operate
 
@@ -22,15 +22,22 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `android-app/` — imported Android device agent and local testing flows.
+- `artifacts/device-admin/` — browser-based fleet admin console.
+- `artifacts/api-server/src/routes/device-control.ts` — device registry, heartbeat, command queue, and dashboard routes.
+- `lib/api-spec/openapi.yaml` — source-of-truth API contract.
+- `lib/db/src/schema/device-control.ts` — PostgreSQL device-control tables.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Device enrollment and heartbeat are separate from local Android account approval, so a device can be reviewed before remote commands are allowed.
+- Commands are queued server-side and delivered on the next device heartbeat; the Android app remains user-started and does not upload screen data.
+- Device health is derived from the last heartbeat, with a short online window and explicit paused/pending states.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Admins can review an entire device fleet, approve or disable devices, inspect device health, and queue safe testing commands.
+- Android devices can enroll with a per-device token and poll for commands without uploading screenshots or templates.
 
 ## User preferences
 
@@ -38,7 +45,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Build Android with `-PcontrolApiBaseUrl=https://your-domain/api` to enable fleet sync.
+- The admin panel currently needs an authentication integration before production use; the user declined the suggested Clerk connection during this build.
 
 ## Pointers
 

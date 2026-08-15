@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Administrator dashboard operations
+  - name: devices
+    description: Enrolled device operations
+  - name: device-agent
+    description: Device-side synchronization operations
 paths:
   /healthz:
     get:
@@ -24,7 +30,195 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /admin/summary:
+    get:
+      operationId: getAdminSummary
+      tags: [dashboard]
+      summary: Get administrator dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSummary"
+  /activity:
+    get:
+      operationId: getActivity
+      tags: [dashboard]
+      summary: Get recent administrator activity
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+  /devices:
+    get:
+      operationId: listDevices
+      tags: [devices]
+      summary: List enrolled devices
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ALL, ONLINE, OFFLINE, PAUSED, PENDING]
+            default: ALL
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Enrolled devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      operationId: enrollDevice
+      tags: [devices]
+      summary: Enroll an Android device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceEnrollmentInput"
+      responses:
+        "201":
+          description: Enrolled device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceEnrollmentResponse"
+  /devices/{deviceId}:
+    get:
+      operationId: getDevice
+      tags: [devices]
+      summary: Get a device
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      responses:
+        "200":
+          description: Device details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "404":
+          description: Device not found
+    patch:
+      operationId: updateDevice
+      tags: [devices]
+      summary: Update device approval and display settings
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceUpdate"
+      responses:
+        "200":
+          description: Updated device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+  /devices/{deviceId}/commands:
+    get:
+      operationId: listDeviceCommands
+      tags: [devices]
+      summary: List recent commands for a device
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      responses:
+        "200":
+          description: Recent commands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeviceCommand"
+    post:
+      operationId: sendDeviceCommand
+      tags: [devices]
+      summary: Queue a command for a device
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceCommandInput"
+      responses:
+        "201":
+          description: Queued command
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceCommand"
+  /device-agent/{deviceId}/heartbeat:
+    post:
+      operationId: deviceHeartbeat
+      tags: [device-agent]
+      summary: Send a device heartbeat
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+        - $ref: "#/components/parameters/DeviceToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceHeartbeatInput"
+      responses:
+        "200":
+          description: Device state and pending commands
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatResponse"
+        "401":
+          description: Invalid device token
+        "404":
+          description: Device not found
 components:
+  parameters:
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    DeviceToken:
+      name: X-Device-Token
+      in: header
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +227,172 @@ components:
           type: string
       required:
         - status
+    AdminSummary:
+      type: object
+      properties:
+        totalDevices:
+          type: number
+        onlineDevices:
+          type: number
+        pendingDevices:
+          type: number
+        pausedDevices:
+          type: number
+        commandsToday:
+          type: number
+        lastSyncAt:
+          type: ["string", "null"]
+          format: date-time
+      required: [totalDevices, onlineDevices, pendingDevices, pausedDevices, commandsToday, lastSyncAt]
+    ActivityEvent:
+      type: object
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+          enum: [DEVICE_ENROLLED, DEVICE_APPROVED, DEVICE_DISABLED, COMMAND_SENT, DEVICE_CONNECTED, DEVICE_DISCONNECTED]
+        message:
+          type: string
+        deviceId:
+          type: ["string", "null"]
+        deviceName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, message, deviceId, deviceName, createdAt]
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        model:
+          type: string
+        androidVersion:
+          type: string
+        appVersion:
+          type: string
+        status:
+          type: string
+          enum: [ONLINE, OFFLINE, PAUSED, PENDING]
+        approved:
+          type: boolean
+        batteryLevel:
+          type: ["number", "null"]
+        activeAction:
+          type: ["string", "null"]
+          enum: [NONE, BACK, HOME, NOTIFICATIONS, null]
+        lastSeenAt:
+          type: ["string", "null"]
+          format: date-time
+        enrolledAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, displayName, model, androidVersion, appVersion, status, approved, batteryLevel, activeAction, lastSeenAt, enrolledAt, updatedAt]
+    DeviceEnrollmentInput:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+        displayName:
+          type: string
+          minLength: 1
+        model:
+          type: string
+        androidVersion:
+          type: string
+        appVersion:
+          type: string
+      required: [id, displayName, model, androidVersion, appVersion]
+    DeviceEnrollmentResponse:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+        deviceToken:
+          type: string
+      required: [device, deviceToken]
+    DeviceUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+        approved:
+          type: boolean
+        paused:
+          type: boolean
+    DeviceCommandInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [START, STOP, PAUSE, REFRESH_STATUS]
+        action:
+          type: string
+          enum: [NONE, BACK, HOME, NOTIFICATIONS]
+        templateName:
+          type: ["string", "null"]
+      required: [type]
+    DeviceCommand:
+      type: object
+      properties:
+        id:
+          type: string
+        deviceId:
+          type: string
+        type:
+          type: string
+          enum: [START, STOP, PAUSE, REFRESH_STATUS]
+        action:
+          type: string
+          enum: [NONE, BACK, HOME, NOTIFICATIONS]
+        templateName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [QUEUED, DELIVERED, ACKNOWLEDGED, FAILED, EXPIRED]
+        createdAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: ["string", "null"]
+          format: date-time
+      required: [id, deviceId, type, action, templateName, status, createdAt, acknowledgedAt]
+    DeviceHeartbeatInput:
+      type: object
+      properties:
+        model:
+          type: string
+        androidVersion:
+          type: string
+        appVersion:
+          type: string
+        batteryLevel:
+          type: ["number", "null"]
+          minimum: 0
+          maximum: 100
+        activeAction:
+          type: ["string", "null"]
+          enum: [NONE, BACK, HOME, NOTIFICATIONS, null]
+        isRunning:
+          type: boolean
+      required: [model, androidVersion, appVersion, batteryLevel, activeAction, isRunning]
+    HeartbeatResponse:
+      type: object
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+        commands:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeviceCommand"
+      required: [device, commands]
 
