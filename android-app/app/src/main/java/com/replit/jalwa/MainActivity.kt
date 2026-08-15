@@ -109,10 +109,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!android.provider.Settings.canDrawOverlays(this)) {
-            val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:$packageName"))
-            startActivity(intent)
-        }
         setContent {
             JalwaTheme {
                 JalwaApp(
@@ -445,11 +441,12 @@ private fun PermissionScreen(vm: JalwaViewModel, state: UiState) {
         PermissionRow("Accessibility service", state.permissionStatus.accessibility) { PermissionCenter.openAccessibility(context) }
         PermissionRow("Overlay access", state.permissionStatus.overlay) { PermissionCenter.openOverlay(context) }
         PermissionRow("Private template storage", state.permissionStatus.privateStorage) {}
+        PermissionRow("Notifications", state.permissionStatus.notifications) { PermissionCenter.openNotifications(context) }
         Spacer(Modifier.height(18.dp))
         OutlinedButton(onClick = { vm.updatePermissionStatus() }, Modifier.fillMaxWidth()) { Text("Refresh permission status") }
         Spacer(Modifier.height(24.dp))
         Text("Why these permissions?", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Text("Accessibility is used only for the one configured test action. Overlay access supports a visible status surface. Frames are processed in memory and are never uploaded.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+        Text("Accessibility is used only for the one configured test action. Overlay access supports a visible status surface. Notifications keep the active capture visible. Screen-capture consent is requested separately for each start, and frames are processed in memory.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
     }
 }
 
@@ -824,7 +821,6 @@ private fun RowScope.SubscriptionChoice(label: String, onClick: () -> Unit) {
 
 @Composable
 private fun TemplatesScreen(vm: JalwaViewModel, templates: List<TemplateEntity>) {
-    val context = LocalContext.current
     var name by rememberSaveable { mutableStateOf("") }
     var threshold by rememberSaveable { mutableStateOf("0.90") }
     var region by rememberSaveable { mutableStateOf("") }
@@ -839,14 +835,8 @@ private fun TemplatesScreen(vm: JalwaViewModel, templates: List<TemplateEntity>)
             vm.replaceTemplate(replacing, uri)
             replacementId = null
         } else {
-            runCatching {
-                com.replit.jalwa.data.TemplateStore(context).import(uri, pendingName)
-            }.onSuccess { filename ->
-                vm.importTemplate(filename, pendingName, pendingThreshold, pendingRegion)
-                name = ""
-            }.onFailure {
-                vm.showMessage("The selected image could not be stored privately")
-            }
+            vm.importTemplate(uri, pendingName, pendingThreshold, pendingRegion)
+            name = ""
         }
     }
     Column(Modifier.fillMaxSize().padding(22.dp)) {

@@ -1,6 +1,6 @@
 # ATPILOT
 
-ATPILOT is an offline-first Android testing utility for controlled, user-started visual matching workflows. It keeps account data, administrator controls, and reference templates on the device, and runs only one configured test action after a valid match.
+ATPILOT is an offline-first Android testing utility for controlled, user-started visual matching workflows. It keeps account data, administrator controls, and reference templates on the device, and runs only one configured test action after a valid match. It has no cloud account service, payment processor, analytics, advertising, or frame upload.
 
 ## Safety and scope
 
@@ -16,7 +16,7 @@ The accessibility service:
 ## Features
 
 - Local Room database for users, administrators, and template metadata.
-- Salted, iterated SHA-256 password hashing; no plaintext passwords.
+- Versioned PBKDF2-HMAC-SHA256 password hashing with per-account salts; legacy hashes are rehashed after successful login and no plaintext passwords are stored.
 - Five-attempt-per-minute login limiter.
 - Hidden administrator entry point by tapping the signed-in user's name ten times within a short sequence.
 - Secure first-run administrator initialization for `diwanatik84@gmail.com`.
@@ -25,7 +25,7 @@ The accessibility service:
 - Admin-only template import into `files/private_templates`.
 - Sixteen seed templates from the requested `Detail-Report` repository, copied to private storage on first run.
 - No Gallery, MediaStore, Downloads, Firebase, analytics, advertising, or cloud upload.
-- Permission Center for accessibility, overlay, and private-storage status.
+- Permission Center for accessibility, overlay, notification, and private-storage status. Screen-capture consent is requested separately for every start.
 - User-consented MediaProjection capture with a visible foreground notification.
 - Floating WindowManager controller with drag, collapse, pause, resume, and stop.
 - In-memory pixel matcher with bounded frame processing, cooldown/debounce, and optional safe region.
@@ -48,6 +48,14 @@ bash ./gradlew assembleDebug
 ```
 
 The wrapper script downloads the pinned Gradle wrapper bootstrap jar on first use if it is not already present. Android Studio can also regenerate the standard wrapper from the project files.
+
+The GitHub Actions workflow at `.github/workflows/build-android.yml` runs the same debug build on every push to `main`, stores the APK as `replit-jalwa-debug-apk`, and can optionally publish a tagged GitHub release when started manually with a release tag.
+
+## Privacy and permissions
+
+The app is local-only. User and administrator records use the on-device Room database. Imported templates are validated and stored under app-private internal storage with generated filenames; the app does not use Gallery, MediaStore, DCIM, Pictures, or Downloads for private templates. Captured frames are bounded, processed in memory, and released. A visible foreground notification remains active while capture is running.
+
+Overlay and accessibility access are optional until a user starts a protected test. Android screen-capture consent is requested separately for each start and is never bypassed. Only an approved account with an active subscription can start protected functionality, and subscriptions are assigned locally by the device administrator.
 
 ## First run
 
@@ -72,7 +80,19 @@ The seed images are bundled under `app/src/main/assets/templates` so a fresh ins
 - `app/src/main/java/com/replit/jalwa/accessibility` — minimal user-controlled accessibility service.
 - `app/src/main/java/com/replit/jalwa/MainActivity.kt` — Compose UI and screen flows.
 - `app/src/main/assets/templates` — requested seed images, copied into private storage during first run.
-- `app/src/test` — local unit tests for hashing, subscriptions, and matching.
+- `app/src/test` — local unit tests for hashing, subscription windows, and matching.
+
+## Test commands
+
+From `android-app`:
+
+```bash
+./gradlew clean
+./gradlew assembleDebug
+./gradlew test
+```
+
+The CI workflow provides the Android SDK and JDK 17. Emulator-only permission, rotation, capture, pause/resume, and accessibility lifecycle checks must be run on an Android 8.0+ device or emulator; they are not represented as successful local unit tests.
 
 ## License
 

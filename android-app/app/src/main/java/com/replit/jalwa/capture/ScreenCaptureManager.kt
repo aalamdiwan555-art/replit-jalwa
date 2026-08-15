@@ -109,6 +109,7 @@ class ScreenCaptureManager(
         if (released) return
         released = true
         paused = true
+        frameHandler?.removeCallbacksAndMessages(null)
         runCatching { displayManager.unregisterDisplayListener(displayListener) }
         runCatching { mediaProjection?.unregisterCallback(projectionCallback) }
         imageReader?.setOnImageAvailableListener(null, null)
@@ -125,6 +126,7 @@ class ScreenCaptureManager(
     }
 
     private fun recreateVirtualDisplay() {
+        if (released || paused) return
         val projection = mediaProjection ?: return
         val metrics = screenMetrics()
         val scale = (MAX_CAPTURE_DIMENSION.toFloat() / maxOf(metrics.widthPixels, metrics.heightPixels))
@@ -186,6 +188,9 @@ class ScreenCaptureManager(
         buffer.rewind()
         val pixelStride = plane.pixelStride
         val rowStride = plane.rowStride
+        require(pixelStride > 0 && rowStride >= pixelStride * image.width) {
+            "Invalid image plane layout"
+        }
         val rowPadding = rowStride - pixelStride * image.width
         val bitmapWidth = image.width + rowPadding / pixelStride
         val bitmap = Bitmap.createBitmap(bitmapWidth, image.height, Bitmap.Config.ARGB_8888)

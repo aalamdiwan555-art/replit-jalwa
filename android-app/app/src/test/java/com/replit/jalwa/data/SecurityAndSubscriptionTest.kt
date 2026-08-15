@@ -35,4 +35,24 @@ class SecurityAndSubscriptionTest {
         val start = 1_000_000L
         assertTrue(SubscriptionManager.expiryFor(SubscriptionType.LIFETIME, start = start) == null)
     }
+
+    @Test
+    fun subscriptions_require_a_valid_started_window() {
+        val start = 1_000_000L
+        val expiry = start + 86_400_000L
+        val base = UserEntity(
+            name = "Test",
+            email = "test@example.com",
+            passwordHash = "hash",
+            passwordSalt = "salt",
+            accountStatus = AccountStatus.APPROVED,
+            subscriptionType = SubscriptionType.ONE_DAY,
+            subscriptionStart = start,
+            subscriptionExpiry = expiry,
+        )
+        assertFalse(SubscriptionManager.isActive(base.copy(subscriptionStart = null), start))
+        assertFalse(SubscriptionManager.isActive(base.copy(subscriptionStart = start + 1), start))
+        assertFalse(SubscriptionManager.isActive(base.copy(subscriptionExpiry = start), start + 1))
+        assertTrue(SubscriptionManager.isActive(base, start + 1))
+    }
 }

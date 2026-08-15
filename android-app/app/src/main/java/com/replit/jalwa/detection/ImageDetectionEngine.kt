@@ -143,7 +143,9 @@ class ImageDetectionEngine(
             return DetectionResult(false, 0f)
         }
         val bounds = Rect(0, 0, frame.width, frame.height)
-        roi?.let { bounds.intersect(it) }
+        if (roi != null && !bounds.intersect(roi)) {
+            return DetectionResult(false, 0f)
+        }
         if (bounds.width() < reference.width || bounds.height() < reference.height) {
             return DetectionResult(false, 0f)
         }

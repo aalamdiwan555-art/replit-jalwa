@@ -2,6 +2,7 @@ package com.replit.jalwa
 
 import android.app.Application
 import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.replit.jalwa.capture.ScreenCaptureForegroundService
@@ -21,10 +22,12 @@ import com.replit.jalwa.data.UserEntity
 import com.replit.jalwa.detection.DetectionState
 import com.replit.jalwa.detection.DetectionStatus
 import com.replit.jalwa.detection.TestAction
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class AppScreen {
     LOGIN,
@@ -249,25 +252,49 @@ class JalwaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun importTemplate(
-        filename: String,
+        uri: Uri,
         name: String,
         threshold: Float,
         detectionRegion: String? = null,
     ) = viewModelScope.launch {
         if (!requireAdminSession()) return@launch
-        if (name.isBlank()) {
-            notify("Give the template a name")
-            return@launch
+        withContext(Dispatchers.IO) {
+            val normalizedName = name.trim()
+            val normalizedRegion = detectionRegion?.trim()?.takeIf { it.isNotEmpty() }
+            if (normalizedName.isBlank()) {
+                notify("Give the template a name")
+                return@withContext
+            }
+            if (threshold !in 0f..1f) {
+                notify("Matching threshold must be between 0 and 1")
+                return@withContext
+            }
+            if (!isValidRegion(normalizedRegion)) {
+                notify("Safe region must be left,top,right,bottom with positive bounds")
+                return@withContext
+            }
+            val filename = runCatching {
+                templateStore.import(uri, normalizedName)
+            }.getOrElse {
+                notify("The selected image is invalid or too large")
+                return@withContext
+            }
+            runCatching {
+                templates.insert(
+                    TemplateEntity(
+                        name = normalizedName,
+                        internalFilename = filename,
+                        threshold = threshold,
+                        detectionRegion = normalizedRegion,
+                    ),
+                )
+            }.onSuccess {
+                notify("Template stored privately")
+            }.onFailure {
+                templateStore.delete(filename)
+                notify("The template could not be registered")
+            }
         }
-        templates.insert(
-            TemplateEntity(
-                name = name.trim(),
-                internalFilename = filename,
-                threshold = threshold,
-                detectionRegion = detectionRegion?.trim()?.takeIf { it.isNotEmpty() },
-            ),
-        )
-        notify("Template stored privately")
     }
 
     fun deleteTemplate(template: TemplateEntity) = viewModelScope.launch {
@@ -393,6 +420,14 @@ class JalwaViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun notify(message: String) {
         _state.value = _state.value.copy(message = message)
+    }
+
+    private fun isValidRegion(value: String?): Boolean {
+        if (value == null) return true
+        val parts = value.split(",").map { it.trim().toIntOrNull() }
+        if (parts.size != 4 || parts.any { it == null }) return false
+        val (left, top, right, bottom) = parts.filterNotNull()
+        return left >= 0 && top >= 0 && right > left && bottom > top
     }
 
     private fun requireAdminSession(): Boolean {

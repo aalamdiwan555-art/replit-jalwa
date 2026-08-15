@@ -5,11 +5,12 @@ import java.util.concurrent.TimeUnit
 object SubscriptionManager {
     fun isSubscriptionActive(user: UserEntity, now: Long = System.currentTimeMillis()): Boolean {
         if (user.accountStatus != AccountStatus.APPROVED) return false
-        if (user.subscriptionType == SubscriptionType.LIFETIME &&
-            user.subscriptionStart != null
-        ) return true
+        val start = user.subscriptionStart ?: return false
+        if (start < 0L || start > now) return false
+        if (user.subscriptionType == SubscriptionType.LIFETIME) return true
         if (user.subscriptionType == SubscriptionType.NONE) return false
-        return user.subscriptionExpiry?.let { it > now } == true
+        val expiry = user.subscriptionExpiry ?: return false
+        return expiry > start && expiry > now
     }
 
     fun isActive(user: UserEntity, now: Long = System.currentTimeMillis()): Boolean =

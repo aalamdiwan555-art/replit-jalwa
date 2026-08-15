@@ -4,6 +4,9 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.UUID
 
 class TemplateStore(private val context: Context) {
@@ -54,8 +57,19 @@ class TemplateStore(private val context: Context) {
         try {
             copyToTemporary(uri, temporary)
             validateImage(temporary)
-            temporary.inputStream().use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
+            try {
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
+            } catch (_: AtomicMoveNotSupportedException) {
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
             }
         } finally {
             temporary.delete()
@@ -63,8 +77,12 @@ class TemplateStore(private val context: Context) {
     }
 
     fun open(filename: String): File =
-        File(directory, filename).also {
-            require(it.parentFile?.canonicalFile == directory.canonicalFile) { "Invalid template path" }
+        File(directory, filename).canonicalFile.also {
+            val root = directory.canonicalFile
+            require(
+                filename.matches(Regex("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")) &&
+                    it.parentFile == root,
+            ) { "Invalid template path" }
         }
 
     private fun copyToTemporary(uri: Uri, temporary: File) {
@@ -103,7 +121,10 @@ class TemplateStore(private val context: Context) {
             inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
         }
         val bitmap = BitmapFactory.decodeFile(file.absolutePath, decodeOptions)
-        requireNotNull(bitmap) { "The selected file is not a valid image" }
-        bitmap.recycle()
+        try {
+            requireNotNull(bitmap) { "The selected file is not a valid image" }
+        } finally {
+            bitmap?.recycle()
+        }
     }
 }

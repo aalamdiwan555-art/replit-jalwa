@@ -189,6 +189,12 @@ class ScreenCaptureForegroundService : Service() {
             processor = frameProcessor,
             onState = { state, message ->
                 publishStatus(DetectionStatus(state, message = message))
+                if (state == DetectionState.ERROR) {
+                    serviceScope.launch {
+                        stopSession(publishStopped = false)
+                        stopSelf()
+                    }
+                }
             },
             onCaptureSize = { sourceWidth, sourceHeight, captureWidth, captureHeight ->
                 detectionEngine.updateRegionOfInterest(
@@ -217,24 +223,32 @@ class ScreenCaptureForegroundService : Service() {
     }
 
     private fun stopSession() {
+        stopSession(publishStopped = true)
+    }
+
+    private fun stopSession(publishStopped: Boolean) {
         startJob?.cancel()
         startJob = null
         actionJob?.cancel()
         actionJob = null
         processor?.stop()
         processor = null
-        captureManager?.stopCapture()
+        captureManager?.release()
         captureManager = null
         engine = null
         actionController = null
         FloatingOverlayService.stop(this)
         stopForeground(STOP_FOREGROUND_REMOVE)
-        currentStatus = DetectionStatus(DetectionState.STOPPED, message = "Stopped by the user")
+        if (publishStopped) {
+            publishStatus(DetectionStatus(DetectionState.STOPPED, message = "Stopped by the user"))
+        } else {
+            currentStatus = DetectionStatus(DetectionState.ERROR, message = "Capture stopped after an error")
+        }
     }
 
     private fun publishError(message: String) {
         publishStatus(DetectionStatus(DetectionState.ERROR, message = message))
-        stopSession()
+        stopSession(publishStopped = false)
         stopSelf()
     }
 
@@ -272,6 +286,9 @@ class ScreenCaptureForegroundService : Service() {
         captureHeight: Int,
     ): Rect? {
         if (source == null) return null
+        if (sourceWidth <= 0 || sourceHeight <= 0 || captureWidth <= 0 || captureHeight <= 0) {
+            return null
+        }
         if (
             source.left < 0 || source.top < 0 ||
             source.right > sourceWidth || source.bottom > sourceHeight ||
