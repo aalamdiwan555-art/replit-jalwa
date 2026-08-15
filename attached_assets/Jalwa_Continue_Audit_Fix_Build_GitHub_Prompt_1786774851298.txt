@@ -1,0 +1,331 @@
+JALWA PROJECT — CONTINUE EXISTING WORK
+COMPLETE AUDIT → FIX → TEST → BUILD → COMMIT → GITHUB PUSH
+
+Repository:
+https://github.com/aalamdiwan555-art/replit-jalwa.git
+
+CONTINUE FROM THE CURRENT WORKSPACE STATE. Do not restart, replace, or discard previous work.
+
+Previous work already completed:
+- Located the GitHub repository.
+- Brought the Android project into the workspace.
+- Confirmed android-app/ exists.
+- Installed/configured Android SDK.
+- Configured compatible JDK 17.
+- Started the baseline build/audit.
+- Identified root-cause issues including approval-gate bypass, weak/non-versioned password hashing, unsafe template filenames, incomplete subscription expiry, and service cleanup races.
+
+1. INSPECT CURRENT STATE
+Run:
+git status
+git diff --stat
+git diff
+
+Preserve all existing uncommitted work. Determine what is already fixed, partially fixed, and still broken.
+
+2. COMPLETE FULL AUDIT
+Inspect the entire android-app/ tree, especially:
+accessibility/
+actions/
+capture/
+data/
+detection/
+overlay/
+AndroidManifest.xml
+Gradle files
+resources
+services
+ViewModels
+repositories
+database
+authentication
+subscription
+template storage
+permissions
+tests
+
+Search for TODO, FIXME, placeholders, stubs, empty methods, unsafe returns, hardcoded credentials, plaintext passwords, race conditions, leaked services, MediaProjection/ImageReader leaks, uncancelled coroutines, duplicate classes, broken imports, and missing manifest/dependencies.
+
+3. AUTHENTICATION
+Keep authentication local only. No Firebase/cloud auth.
+Use a modern salted password-hashing approach. Never store plaintext passwords or log credentials.
+Validate email, prevent duplicate accounts, handle invalid login, session/logout, and account status.
+If a legacy password format exists, support safe migration/rehashing where practical.
+
+4. CENTRAL AUTHORIZATION
+Fix approval/subscription bypass at the central authorization layer, not only in UI.
+Statuses:
+PENDING, APPROVED, REJECTED, DISABLED, EXPIRED.
+Only APPROVED users with an active subscription may start protected functionality.
+Prevent bypass through another Activity, service, overlay, ViewModel, or direct engine call.
+
+5. ADMIN
+Admin email:
+diwanatik84@gmail.com
+Never hard-code or expose the plaintext admin password.
+Use secure initialization and verify admin authorization for every sensitive operation.
+Admin functions:
+approve/reject/disable/reactivate users, search users, assign subscriptions, change expiry, lifetime, manage templates, configure detection, inspect diagnostics.
+Subscriptions:
+1 DAY, 2 DAYS, 3 DAYS, CUSTOM, LIFETIME.
+
+6. SUBSCRIPTIONS
+Use subscriptionStart/subscriptionExpiry and a single source of truth:
+isSubscriptionActive()
+Handle app/device restart, expiration, disabled account, timezone changes, malformed timestamps, lifetime, and custom expiry.
+Expired users cannot start protected functionality.
+
+7. TEMPLATE STORAGE
+Fix unsafe filename handling.
+On admin import:
+- decode and validate image
+- reject invalid/oversized files
+- generate a random internal filename/ID
+- store in app-private internal storage
+- store only the generated ID
+- prevent path traversal
+- clean temporary files
+Never use public DCIM/Pictures/Downloads/MediaStore for private templates.
+Normal users must not see reference images or private paths.
+
+8. SCREEN CAPTURE
+Use Android MediaProjection with explicit user consent.
+Flow:
+START → authorization → permission → MediaProjection consent → projection → VirtualDisplay → ImageReader → frame → processor → detector → release.
+Never capture without consent, hide notifications, or upload frames.
+Process frames in memory and release them.
+
+9. CAPTURE LIFECYCLE
+Fix stale callbacks/races after STOP or service destruction.
+Use cancellation, lifecycle ownership, callback cleanup, and session/generation IDs where useful.
+Old capture sessions must never affect new sessions.
+
+10. IMAGEREADER/MEMORY
+Every acquired Image must be closed even on errors.
+Prevent ImageReader, VirtualDisplay, MediaProjection, Bitmap, coroutine, and frame-queue leaks.
+Use backpressure and bounded processing.
+
+11. DETECTION
+Find the actual DetectionResult definition; do not create duplicates.
+It should contain:
+matched, confidence, left, top, right, bottom, timestamp.
+Validate confidence and rectangle before passing results onward.
+
+Audit ImageDetectionEngine and ScreenFrameProcessor.
+Keep expensive processing off the main thread.
+Support cancellation, frame dropping, configurable intervals, template validation, confidence thresholds, cooldown, and duplicate-match suppression.
+
+12. COORDINATES
+Verify the complete coordinate pipeline:
+screen frame → crop → detection → display → internal test action.
+If cropping is used, correctly restore offsets.
+Never mix coordinate spaces.
+Add safe diagnostics for frame size, match rectangle, and center coordinates.
+
+13. ACTION CONTROLLER
+Audit ActionController.kt.
+Do not discard DetectionResult information.
+Report:
+no action configured / unavailable / started / completed / failed.
+Never report success when the underlying action fails.
+Any coordinate-based action must be restricted to the application's explicit internal test surface.
+Do not add anti-bot, anti-cheat, CAPTCHA, rate-limit, or security bypasses.
+
+14. ACCESSIBILITY
+Audit AutomationAccessibilityService.kt:
+- manifest declaration
+- accessibility XML
+- connection
+- lifecycle
+- instance cleanup
+- interrupt/destroy
+- action results
+Keep legitimate existing global actions such as BACK/HOME/NOTIFICATIONS.
+Coordinate testing, if required, must be limited to the internal test workflow.
+
+15. FLOATING OVERLAY
+Make the overlay reliable:
+- explicit permission
+- draggable
+- collapse/expand
+- position persistence
+- screen-bound clamping
+- Pause/Stop
+- status
+- complete cleanup
+States:
+READY, CAPTURING, SEARCHING, MATCH_FOUND, PROCESSING, PAUSED, STOPPED, ERROR.
+Prevent duplicate overlays, stale WindowManager references, and overlays remaining after STOP.
+
+16. RUNTIME STATE
+Use one authoritative runtime state:
+IDLE
+STARTING
+WAITING_FOR_CAPTURE_PERMISSION
+CAPTURING
+SEARCHING
+MATCH_FOUND
+PAUSED
+STOPPING
+STOPPED
+ERROR
+Do not allow UI and service to report contradictory states.
+
+17. PERMISSIONS
+Permission Center must show real current state for:
+Overlay, Accessibility, Screen Capture, and foreground-service/notification requirements.
+Do not use stale booleans as the source of truth.
+Never bypass Android permission dialogs.
+
+18. FOREGROUND SERVICE
+Where required for active screen capture, use the correct foreground-service configuration and keep its notification visible.
+Provide Pause/Stop actions and stop the service when capture ends.
+
+19. DATABASE
+Audit Room/SQLite schema, migrations, indices, uniqueness, nullability, transactions, and concurrency.
+Email must be unique.
+Use transactions for multi-record admin operations where appropriate.
+Use typed statuses instead of inconsistent string comparisons.
+
+20. USER UI
+Required screens:
+Splash, Login, Signup, Pending, Home, Permission Center, Subscription, Detection, Account, Settings, Privacy, Open Source Licenses.
+Normal users must never see hidden reference images, private paths, admin credentials, or admin controls.
+
+21. ADMIN UI
+Dashboard should show total/pending/approved/rejected/disabled/expired users.
+Provide user search and management.
+Provide subscription controls.
+Provide template add/replace/delete/enable/disable/threshold controls.
+
+22. INTERNAL TEST SCREEN
+Create a dedicated LOCAL test screen containing a known visual test target and a Run Internal Test button.
+It must verify:
+MediaProjection → frame → image detection → DetectionResult → coordinates → ActionController → internal test action → result.
+Do not depend on another application.
+Show a diagnostic timeline:
+PASS Capture
+PASS Frame received
+PASS Template loaded
+PASS Match found
+PASS Coordinates valid
+PASS Action dispatched
+PASS Action completed
+or show the exact failed stage.
+
+23. SAFETY
+Do not add anti-bot/anti-cheat/CAPTCHA/rate-limit/security bypasses, hidden third-party interaction, or concealed background automation.
+The internal test screen is the acceptance environment.
+
+24. ERROR HANDLING
+Handle missing/corrupt templates, permission denial, unavailable services, capture errors, ImageReader failures, bitmap conversion failures, detection failures, invalid coordinates, action failures, database failures, and expired subscriptions.
+No empty catch blocks and no fake success.
+
+25. PERFORMANCE
+Optimize for the project's Android 8+ compatibility and target SDK.
+No unbounded memory, bitmap leaks, unlimited frame queues, unnecessary allocations, or main-thread image processing.
+Use structured coroutine cancellation.
+
+26. LIFECYCLE TEST
+Test open/login/start/permission/capture/rotation/pause/resume/stop/restart/lock/unlock/permission revocation/restart.
+No crashes, leaks, or hidden capture.
+
+27. TESTS AND BUILD
+Run:
+./gradlew clean
+./gradlew assembleDebug
+./gradlew test
+and ./gradlew lint if configured.
+Fix failures instead of disabling tests.
+Confirm an actual APK is generated and record its path, size, variant, version code, and version name.
+
+28. OPEN-SOURCE ATTRIBUTION
+If code from Smart AutoClicker/Klick'r is reused:
+https://github.com/Nain57/Smart-AutoClicker
+inspect and comply with GPL-3.0, preserve copyright/license, identify reused files and modifications, and add THIRD_PARTY_NOTICES.md where applicable.
+Do not claim third-party code as original or blindly copy the whole application.
+
+29. GITHUB SECURITY
+If GITHUB_PERSONAL_ACCESS_TOKEN is provided, use it only through a secure environment/credential mechanism.
+NEVER print, commit, or expose it.
+Before push, search staged changes for:
+github_pat, ghp_, token, password, secret, apiKey.
+If a credential is found, stop and remove it.
+
+30. GIT
+Before commit:
+git status
+git diff
+git diff --check
+
+Do not commit build/, .gradle/, local.properties, SDK paths, secrets, tokens, generated temporary files, screenshots, or credentials.
+Ensure .gitignore is correct.
+
+31. COMMIT AND PUSH
+After successful build/tests/verification, create an accurate commit, for example:
+fix: complete Android audit and repair capture detection pipeline
+
+Push to:
+https://github.com/aalamdiwan555-art/replit-jalwa.git
+
+Then run git status and verify the repository is clean apart from ignored/generated files.
+Verify GitHub contains android-app/, Gradle files, source changes, tests, README updates, and THIRD_PARTY_NOTICES.md where applicable.
+
+32. README
+Update README with:
+- project description
+- build instructions
+- required JDK/Android SDK
+- permissions
+- screen-capture privacy
+- local-only architecture
+- admin/subscription limitation
+- test instructions
+- open-source attribution
+Never put credentials in README.
+
+33. FINAL ACCEPTANCE
+BUILD: PASS
+UNIT TESTS: PASS
+LINT: PASS or no blocking issues
+LOGIN: PASS
+SIGNUP: PASS
+ADMIN: PASS
+APPROVAL GATE: PASS
+SUBSCRIPTION: PASS
+EXPIRY: PASS
+TEMPLATE IMPORT: PASS
+PRIVATE TEMPLATE STORAGE: PASS
+PERMISSION CENTER: PASS
+SCREEN CAPTURE: PASS
+IMAGE DETECTION: PASS
+DETECTION RESULT: PASS
+COORDINATE VALIDATION: PASS
+INTERNAL TEST ACTION: PASS
+FLOATING OVERLAY: PASS
+PAUSE: PASS
+RESUME: PASS
+STOP: PASS
+CLEANUP: PASS
+RESTART: PASS
+LIFECYCLE: PASS
+NO PLAINTEXT CREDENTIALS: PASS
+NO SECRET IN GIT: PASS
+GITHUB PUSH: PASS
+
+34. FINAL REPORT
+Report:
+- build command/result/APK path
+- every significant bug, root cause, and fix
+- verified features
+- tests passed/failed/skipped and why
+- credential/security handling
+- secret scan
+- private template handling
+- open-source files/license/attribution
+- GitHub branch, commit hash, and final git status
+
+Do NOT claim a feature works unless it was actually tested.
+
+FINAL INSTRUCTION:
+Continue from the current project state. Do not restart or replace the Android application. Preserve previous fixes. Complete the audit, fix root causes, build, test, verify the APK, run the internal end-to-end test, perform a secret scan, commit the verified changes, and push the completed project to GitHub using secure token handling.
